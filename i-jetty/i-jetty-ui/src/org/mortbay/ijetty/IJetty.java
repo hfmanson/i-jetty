@@ -54,6 +54,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import org.eclipse.jetty.util.log.Logger;
 
 /**
  * IJetty
@@ -306,7 +307,7 @@ public class IJetty extends Activity
 
         // Bridge Jetty logging to Android logging
         System.setProperty("org.eclipse.jetty.util.log.class","org.mortbay.ijetty.AndroidLog");
-        org.eclipse.jetty.util.log.Log.setLog(new AndroidLog());
+        org.eclipse.jetty.util.log.Log.setLog((Logger) new AndroidLog());
     }
     
     public IJetty ()

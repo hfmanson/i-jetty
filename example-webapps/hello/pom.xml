@@ -43,7 +43,7 @@
               <arguments>
                <!-- <argument>-JXmx1024M</argument> -->
                 <argument>-jar</argument>
-                <argument>${env.ANDROID_HOME}/platform-tools/lib/dx.jar</argument>
+                <argument>${env.ANDROID_HOME}/build-tools/30.0.3/lib/dx.jar</argument>
                 <argument>--dex</argument>
                 <argument>--verbose</argument>
                 <argument>--core-library</argument>
@@ -65,7 +65,7 @@
               <goal>run</goal>
             </goals>
             <configuration>
-              <tasks>
+              <target>
                 <mkdir
                   dir="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib" />
                 <jar
@@ -73,7 +73,7 @@
                   update="true"
                   includes="classes.dex"
                   destfile="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib/classes.zip" />
-              </tasks>
+              </target>
             </configuration>
           </execution>
         </executions>
