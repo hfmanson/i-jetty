@@ -46,7 +46,7 @@ public class AndroidLog implements Logger
 
     public void debug(Throwable th)
     {
-        if (Log.isLoggable(__JETTY_TAG, Log.DEBUG))
+        if (isDebugEnabled())
         {
             Log.d(__JETTY_TAG, "", th);
         }
@@ -54,7 +54,7 @@ public class AndroidLog implements Logger
     
     public void debug(String msg, Throwable th)
     {
-        if (Log.isLoggable(__JETTY_TAG, Log.DEBUG))
+        if (isDebugEnabled())
         {
             Log.d(__JETTY_TAG, msg, th);
         }
@@ -62,7 +62,7 @@ public class AndroidLog implements Logger
 
     public void debug(String msg, Object... args)
     {
-        if (Log.isLoggable(__JETTY_TAG, Log.DEBUG)) 
+        if (isDebugEnabled()) 
         {            
             Log.d(__JETTY_TAG, msg);
         }
