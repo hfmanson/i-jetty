@@ -2,7 +2,6 @@ package org.mortbay.ijetty.msx;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonBuilderFactory;
@@ -15,7 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.nodes.TextNode;
 import org.jsoup.select.Elements;
 
 public class GetSearch extends HttpServlet 
@@ -59,7 +57,6 @@ public class GetSearch extends HttpServlet
             if (!href.equals(hrefOld)) {
                 Elements titles = element.select("div > div > h3 > div");
                 String title = titles.get(0).text();
-                System.out.println("***"+title);
                 String baseURL = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
                 itemsBuilder.add(factory.createObjectBuilder()
                     .add("title", title)

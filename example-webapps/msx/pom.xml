@@ -38,10 +38,71 @@
                         </goals>
                         <configuration>
                             <failOnMissingClassifierArtifact>false</failOnMissingClassifierArtifact>
-                            <excludeArtifactIds>servlet-api,android</excludeArtifactIds>
+                            <excludeArtifactIds>android</excludeArtifactIds>
                             <excludeTransitive>true</excludeTransitive>
+                            <excludes>META-INF/,module-info.class</excludes>
                             <outputDirectory>${project.build.directory}/generated-classes</outputDirectory>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.7</version>
+                <executions>
+                    <execution>
+                        <id>generated-classes</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <fileset id="generated-classes" dir="${project.build.directory}/generated-classes">
+                                    <include name="**/*.class"/>
+                                </fileset>
+                                <pathconvert pathsep="${line.separator}"
+                                             property="generated-classes-file-list" refid="generated-classes">
+                                </pathconvert>
+                                <echo file="${basedir}\target\classes-file-list.txt">${generated-classes-file-list}${line.separator}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>classes</id>
+                        <phase>process-classes</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <fileset id="classes" dir="${project.build.directory}/classes">
+                                    <include name="**/*.class"/>
+                                </fileset>
+                                <pathconvert pathsep="${line.separator}"
+                                             property="classes-file-list" refid="classes">
+                                </pathconvert>
+                                <echo file="${basedir}\target\classes-file-list.txt" append="true">${classes-file-list}${line.separator}</echo>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copydex</id>
+                        <phase>process-classes</phase>
+                        <configuration>
+                            <target>
+                                <mkdir
+                                    dir="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib" />
+                                <jar
+                                    basedir="${project.build.directory}/generated-classes"
+                                    update="true"
+                                    includes="**/*.properties"
+                                    destfile="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib/classes.zip" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -58,48 +119,15 @@
                             <goal>exec</goal>
                         </goals>
                         <configuration>
-                            <!-- executable>${env.ANDROID_HOME}/platform-tools/dx</executable -->
-                            <executable>java</executable>
+                            <executable>${env.ANDROID_HOME}/build-tools/30.0.3/d8.bat</executable>
                             <arguments>
-                                <!-- <argument>-JXmx1024M</argument> -->
-                                <argument>-jar</argument>
-                                <argument>${env.ANDROID_HOME}/build-tools/30.0.3/lib/dx.jar</argument>
-                                <argument>--dex</argument>
-                                <argument>--verbose</argument>
-                                <argument>--core-library</argument>
-                                <argument>--output=${project.build.directory}/classes.dex</argument>
-                                <argument>--positions=lines</argument>
-                                <argument>${project.build.directory}/classes/</argument>
-                                <argument>${project.build.directory}/generated-classes/</argument>
+                                <argument>--output=${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib/classes.zip</argument>
+                                <!-- Android library -->
+                                <argument>--lib</argument>
+                                <argument>${env.ANDROID_HOME}/platforms/android-33/android.jar</argument>
+                                <!-- generated *.class file list -->                                
+                                <argument>@${basedir}/target/classes-file-list.txt</argument>                                
                             </arguments>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copydex</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <mkdir
-                                    dir="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib" />
-                                <jar
-                                    basedir="${project.build.directory}"
-                                    update="true"
-                                    includes="classes.dex"
-                                    destfile="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib/classes.zip" />
-                                <jar
-                                    basedir="${project.build.directory}/generated-classes"
-                                    update="true"
-                                    includes="**/*.properties"
-                                    destfile="${project.build.directory}/${project.artifactId}-${project.version}/WEB-INF/lib/classes.zip" />
-                            </target>
                         </configuration>
                     </execution>
                 </executions>
@@ -113,33 +141,15 @@
             <version>${servlet.version}</version>
             <scope>provided</scope>
         </dependency>
-
-        <dependency>
-            <groupId>com.google.android</groupId>
-            <artifactId>android</artifactId>
-            <version>${android.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.web</groupId>
-            <artifactId>jakarta.servlet.jsp.jstl</artifactId>
-            <version>1.2.6</version>
-        </dependency>
-        <dependency>
-            <groupId>javax.enterprise</groupId>
-            <artifactId>cdi-api</artifactId>
-            <version>1.2</version>
-            <type>jar</type>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish</groupId>
-            <artifactId>json</artifactId>
-            <version>1.0.4</version>
-        </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.10.1</version>
+            <version>1.17.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <version>1.0.4</version>
         </dependency>
     </dependencies>
 </project>
