@@ -11,7 +11,7 @@
         </jsp-property-group>
     </jsp-config>
     <servlet>
-        <servlet-name>form</servlet-name>
+        <servlet-name>search</servlet-name>
         <servlet-class>org.mortbay.ijetty.msx.Form</servlet-class>
     </servlet>
     <servlet>
@@ -23,8 +23,8 @@
         <servlet-class>org.mortbay.ijetty.msx.GetSearch</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>form</servlet-name>
-        <url-pattern></url-pattern>
+        <servlet-name>search</servlet-name>
+        <url-pattern>/search</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>start.json</servlet-name>
