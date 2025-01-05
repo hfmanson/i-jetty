@@ -40,6 +40,7 @@ public class GetSearch extends HttpServlet
         JsonObjectBuilder mediaxBuilder = factory.createObjectBuilder()
             .add("type", "pages")
             .add("headline", search)
+            .add("flag", "results")
             .add("template", factory.createObjectBuilder()
                 .add("type", "separate")
                 .add("layout", "0,0,3,3")
@@ -49,7 +50,8 @@ public class GetSearch extends HttpServlet
             .add(factory.createObjectBuilder()
                 .add("title", "Refresh")
                 .add("icon", "refresh")
-                .add("action", "reload"));
+                .add("action", "replace:content:results:" + request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath() + "/getsearch"));
+
         String ytURL = "https://www.google.com/search?q=" + search + "&tbm=vid";
         Document doc = Jsoup.connect(ytURL).userAgent("curl/8.9.1").get();
         Elements elements = doc.select("a[href^=\"" + startString + "\"]");
