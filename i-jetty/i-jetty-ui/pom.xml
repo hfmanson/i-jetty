@@ -55,30 +55,22 @@
    <build>
       <sourceDirectory>src</sourceDirectory>
       <plugins>
-        <plugin>
-          <groupId>com.jayway.maven.plugins.android.generation2</groupId>
-          <artifactId>android-maven-plugin</artifactId>
-          <version>3.9.0-rc.3</version>
-          <extensions>true</extensions>
-          <configuration>
-              <sdk>
-                  <platform>34</platform>
-              </sdk>
-              <deleteConflictingFiles>true</deleteConflictingFiles>
-              <extractDuplicates>true</extractDuplicates> 
-              <undeployBeforeDeploy>true</undeployBeforeDeploy>
-          </configuration>
-          <executions>
-            <execution>
-              <id>alignApk</id>
-              <phase>package</phase>
-              <goals>
-                <goal>zipalign</goal>
-              </goals>
-            </execution>
-          </executions>
-         </plugin>
-      </plugins>
+      <plugin>
+        <groupId>com.simpligility.maven.plugins</groupId>
+        <artifactId>android-maven-plugin</artifactId>
+        <version>4.6.0</version>
+        <configuration>
+          <dexCompiler>d8</dexCompiler>
+          <extractDuplicates>true</extractDuplicates>
+          <sdk>
+            <platform>34</platform>
+          </sdk>
+          <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+          <resourceDirectory>${project.basedir}/res</resourceDirectory>
+        </configuration>
+        <extensions>true</extensions>
+      </plugin>
+   </plugins>
    </build>
    <profiles>
         <profile>
