@@ -259,10 +259,10 @@ public class IJettyService extends Service
                                 text, 
                                 System.currentTimeMillis());
 
-                        notification.setLatestEventInfo(IJettyService.this, getText(R.string.app_name),
-                                text, contentIntent);
+                        //notification.setLatestEventInfo(IJettyService.this, getText(R.string.app_name),
+                        //        text, contentIntent);
 
-                        mNM.notify(R.string.jetty_started, notification);
+                        //mNM.notify(R.string.jetty_started, notification);
                         
                         Intent startIntent = new Intent(IJetty.__START_ACTION);
                         startIntent.addCategory("default");
