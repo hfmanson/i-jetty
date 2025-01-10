@@ -17,6 +17,7 @@ import org.eclipse.jetty.util.log.Log;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.Scanner;
 import org.eclipse.jetty.xml.XmlConfiguration;
+import org.mortbay.ijetty.IJettyService;
 
 /**
  * AndroidContextDeployer
@@ -72,11 +73,13 @@ public class AndroidContextDeployer extends AbstractLifeCycle {
     private ConfigurationManager     _configMgr;
 
     private boolean                  _recursive          = false;
+    private IJettyService            _iJettyService;
 
-    public AndroidContextDeployer() throws Exception {
+    public AndroidContextDeployer(IJettyService iJettyService) throws Exception {
         super();
         _scanner = new Scanner();
         _attributes = new AttributesMap();
+        _iJettyService = iJettyService;
     }
 
     /* ------------------------------------------------------------ */
@@ -121,6 +124,10 @@ public class AndroidContextDeployer extends AbstractLifeCycle {
     @SuppressWarnings("unchecked")
     public void deploy(String filename) throws Exception {
         ContextHandler context = createContext(filename);
+        String servletPackage = (String) context.getAttribute("nl.mansoft.android.package");
+        String sourceDir = _iJettyService.getSourceDir(servletPackage);
+        context.setAttribute("nl.mansoft.android.sourcedir", sourceDir);
+        context.setBaseResource(Resource.newResource("jar:file:" + sourceDir + "!/"));
         Log.info("Deploy " + filename + " -> " + context);
         _contexts.addHandler(context);
         _currentDeployments.put(filename, context);

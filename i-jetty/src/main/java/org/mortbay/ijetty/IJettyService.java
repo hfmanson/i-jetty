@@ -19,10 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.jetty.util.resource.Resource;
 import org.mortbay.ijetty.deployer.AndroidContextDeployer;
-import org.mortbay.ijetty.deployer.AndroidWebAppDeployer;
 import org.mortbay.ijetty.handler.DefaultHandler;
-import org.mortbay.ijetty.util.AndroidInfo;
 import org.mortbay.ijetty.util.IJettyToast;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -46,7 +45,9 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.os.Binder;
 import android.os.Bundle;
@@ -328,6 +329,18 @@ public class IJettyService extends Service
         return binder;
     }
 
+    public String getSourceDir(String pkg)
+    {
+        try {
+            PackageManager packageManager = getPackageManager();
+            ApplicationInfo appInfo = packageManager.getApplicationInfo(pkg, 0);
+            Log.d(TAG, "getSourceDir(" + pkg + ") = " + appInfo.sourceDir);
+            return appInfo.sourceDir;
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, e.toString());
+        }
+        return null;
+    }
     /** 
      * Android Service create
      * @see android.app.Service#onCreate()
@@ -557,25 +570,12 @@ public class IJettyService extends Service
     
     protected void configureDeployers () throws Exception
     {
-        AndroidWebAppDeployer staticDeployer =  new AndroidWebAppDeployer();
-        AndroidContextDeployer contextDeployer = new AndroidContextDeployer();
+        AndroidContextDeployer contextDeployer = new AndroidContextDeployer(this);
      
         File jettyDir = IJetty.__JETTY_DIR;
         
         if (jettyDir.exists())
         {
-            // If the webapps dir exists, start the static webapp deployer
-            if (new File(jettyDir, IJetty.__WEBAPP_DIR).exists())
-            {
-                staticDeployer.setWebAppDir(IJetty.__JETTY_DIR+"/"+IJetty.__WEBAPP_DIR);
-                staticDeployer.setDefaultsDescriptor(IJetty.__JETTY_DIR+"/"+IJetty.__ETC_DIR+"/webdefault.xml");
-                staticDeployer.setContexts(contexts);
-                staticDeployer.setAttribute(CONTENT_RESOLVER_ATTRIBUTE, getContentResolver());
-                staticDeployer.setAttribute(ANDROID_CONTEXT_ATTRIBUTE, (Context) IJettyService.this);
-                staticDeployer.setConfigurationClasses(__configurationClasses);
-                staticDeployer.setAllowDuplicates(false);
-            }          
-           
             // Use a ContextDeploy so we can hot-deploy webapps and config at startup.
             if (new File(jettyDir, IJetty.__CONTEXTS_DIR).exists())
             {
@@ -590,8 +590,6 @@ public class IJettyService extends Service
             {
                 Log.i(TAG, "Adding context deployer: ");
                 server.addBean(contextDeployer);
-                Log.i(TAG, "Adding webapp deployer: ");
-                server.addBean(staticDeployer); 
             }
         }
         else
@@ -612,8 +610,8 @@ public class IJettyService extends Service
             server.addBean(realm);
         }
     }
-    
-    
+
+
     protected void startJetty() throws Exception
     {
 
@@ -622,7 +620,8 @@ public class IJettyService extends Service
 
         //ipv6 workaround for froyo
         System.setProperty("java.net.preferIPv6Addresses", "false");
-        
+
+        Resource.setDefaultUseCaches(false);
         server = newServer();
         
         configureConnectors();

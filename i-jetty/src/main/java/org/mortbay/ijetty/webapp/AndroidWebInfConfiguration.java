@@ -34,8 +34,8 @@ public class AndroidWebInfConfiguration extends WebInfConfiguration {
     public void preConfigure(WebAppContext context)
     throws Exception
     {
-       
-        context.setClassLoader(new AndroidClassLoader(this.getClass().getClassLoader(), context));
+        String path = (String) context.getAttribute("nl.mansoft.android.sourcedir");
+        context.setClassLoader(new AndroidClassLoader(path, this.getClass().getClassLoader(), context));
         
         super.preConfigure(context);
         Log.debug("Setting classloader parent="+this.getClass().getClassLoader()+" for context: "+context);

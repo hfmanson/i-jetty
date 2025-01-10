@@ -386,15 +386,19 @@ public class IJettyDownloader extends Activity
         };
         
         exchange.setURL(url);
-        try
-        {
-            Log.i("Jetty", "Downloading "+url);
-            client.send(exchange);
-        }
-        catch (Exception e)
-        {
-            Log.e("Jetty", "Download failed for "+url);
-        }
+        new Thread() {
+            public void run() {
+                try
+                {
+                    Log.i("Jetty", "Downloading "+url);
+                    client.send(exchange);
+                }
+                catch (Exception e)
+                {
+                    Log.e("Jetty", "Download failed for "+url);
+                }
+            }
+        }.start();
     }
 
     public String getWarFileName (String url)

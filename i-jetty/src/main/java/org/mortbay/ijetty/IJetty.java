@@ -34,7 +34,6 @@ import org.mortbay.ijetty.log.AndroidLog;
 import org.mortbay.ijetty.util.AndroidInfo;
 import org.mortbay.ijetty.util.IJettyToast;
 
-import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -42,11 +41,16 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.Manifest;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.Settings;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -54,6 +58,16 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import org.eclipse.jetty.util.log.Logger;
 
 /**
@@ -63,7 +77,7 @@ import org.eclipse.jetty.util.log.Logger;
  * 
  * Can start/stop services: + IJettyService
  */
-public class IJetty extends Activity
+public class IJetty extends AppCompatActivity
 {
 
     private static final String TAG = "Jetty";
@@ -326,7 +340,86 @@ public class IJetty extends Activity
  
         };
     }
-    
+
+    public boolean checkStoragePermissions(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            //Android is 11 (R) or above
+            return Environment.isExternalStorageManager();
+        }else {
+            //Below android 11
+            int write = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            int read = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+
+            return read == PackageManager.PERMISSION_GRANTED && write == PackageManager.PERMISSION_GRANTED;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode == STORAGE_PERMISSION_CODE){
+            if(grantResults.length > 0){
+                boolean write = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                boolean read = grantResults[1] == PackageManager.PERMISSION_GRANTED;
+
+                if(read && write){
+                    Toast.makeText(this, "Storage Permissions Granted", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(this, "Storage Permissions Denied", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }
+    }
+
+    private static final int STORAGE_PERMISSION_CODE = 23;
+
+    private ActivityResultLauncher<Intent> storageActivityResultLauncher =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>(){
+
+                @Override
+                public void onActivityResult(ActivityResult o) {
+                    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+                        //Android is 11 (R) or above
+                        if(Environment.isExternalStorageManager()){
+                            //Manage External Storage Permissions Granted
+                            Log.d(TAG, "onActivityResult: Manage External Storage Permissions Granted");
+                        }else{
+                            Toast.makeText(IJetty.this, "Storage Permissions Denied", Toast.LENGTH_SHORT).show();
+                        }
+                    }else{
+                        //Below android 11
+
+                    }
+                }
+            });
+    private void requestForStoragePermissions() {
+        //Android is 11 (R) or above
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.R){
+            try {
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+                intent.setData(uri);
+                storageActivityResultLauncher.launch(intent);
+            }catch (Exception e){
+                Intent intent = new Intent();
+                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                storageActivityResultLauncher.launch(intent);
+            }
+        }else{
+            //Below android 11
+            ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.READ_EXTERNAL_STORAGE
+                    },
+                    STORAGE_PERMISSION_CODE
+            );
+        }
+
+    }
     public String formatJettyInfoLine (String format, Object ... args)
     {
         String ms = "";
@@ -413,14 +506,14 @@ public class IJetty extends Activity
             unregisterReceiver(bcastReceiver);
         super.onDestroy();
     }
-    
-    
+
+
 
     @Override
     public void onCreate(Bundle icicle)
     {
         super.onCreate(icicle);
-        
+
         setContentView(R.layout.jetty_controller);
         
         startButton = (Button)findViewById(R.id.start);
@@ -541,6 +634,9 @@ public class IJetty extends Activity
         footerBuffer.append("<b>Server:</b> http://www.eclipse.org/jetty/ <br/>");
         footerBuffer.append("<b>Support:</b> https://webtide.com/ <br/>");
         footer.setText(Html.fromHtml(footerBuffer.toString()));
+        if (!checkStoragePermissions()) {
+            requestForStoragePermissions();
+        }
     }
 
     public static void show(Context context)
